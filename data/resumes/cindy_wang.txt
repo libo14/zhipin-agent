@@ -1,0 +1,8 @@
+姓名：王 Cindy
+邮箱：cindy.wang@example.com
+电话：+86 137-0000-1003
+学历：本科
+公司：Design CRM
+
+2 年 JavaScript / React 前端开发经验，参与 CRM 表单和数据看板。
+了解 Python 和 SQL，暂未参与 LangChain、LangGraph、RAG 或 OCR 项目。

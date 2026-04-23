@@ -1,0 +1,9 @@
+姓名：李 Bo
+邮箱：bo.li@example.com
+电话：+86 139-0000-1002
+学历：本科
+公司：CloudOps Lab
+
+4 年 Python 后端开发经验，熟悉 FastAPI、SQL、Docker、Kubernetes、Redis。
+参与过内部运营系统建设，对 LangChain 有原型经验，了解 Agent 基本概念。
+暂未深度使用 LangGraph，也没有 OCR 或招聘系统经验。

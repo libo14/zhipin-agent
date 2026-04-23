@@ -1,0 +1,15 @@
+岗位：多智能体招聘系统 AI Engineer
+地点：上海 / Remote
+
+岗位职责：
+- 设计基于 LangChain、LangGraph 的多 Agent 编排系统，支持串行流水线与并行节点混合调度。
+- 构建简历解析、候选人匹配、面试排期、技术面评与沟通触达 Agent。
+- 负责 RAG、OCR、文档解析、LLM 结构化输出和外部工具集成。
+
+任职要求：
+- 3 年以上 Python 后端或 AI 应用开发经验。
+- 熟悉 LangChain、LangGraph、Agent、RAG、SQL、FastAPI、Docker。
+- 本科及以上学历。
+
+加分项：
+- 有 OCR、Google Calendar API、招聘系统或 HR SaaS 项目经验。

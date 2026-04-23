@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>智聘Agent</title>
+    <link rel="icon" href="/static/assets/zhipin-agent-icon.png" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <nav class="side-nav" aria-label="主导航">
+        <div class="side-brand">
+          <img class="logo-mark" src="/static/assets/zhipin-agent-icon.png" alt="" />
+          <strong>智聘Agent</strong>
+        </div>
+        <button class="nav-item active" data-view="dashboard" type="button" title="仪表盘">
+          <svg viewBox="0 0 24 24"><path d="M4 13h7V4H4v9Zm0 7h7v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z" /></svg><span>仪表盘</span>
+        </button>
+        <button class="nav-item" data-view="jobs" type="button" title="职位管理">
+          <svg viewBox="0 0 24 24"><path d="M10 4h4l1 2h5v14H4V6h5l1-2Zm1.2 2-.5 1h2.6l-.5-1h-1.6Z" /></svg><span>职位管理</span>
+        </button>
+        <button class="nav-item" data-view="candidates" type="button" title="候选人">
+          <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 8a8 8 0 0 1 16 0H4Z" /></svg><span>候选人</span>
+        </button>
+        <button class="nav-item" data-view="screening" type="button" title="AI 筛选">
+          <svg viewBox="0 0 24 24"><path d="m12 2 2.2 6.8H21l-5.5 4 2.1 6.8-5.6-4.2-5.6 4.2 2.1-6.8L3 8.8h6.8L12 2Z" /></svg><span>AI 筛选</span>
+        </button>
+        <button class="nav-item" data-view="interviews" type="button" title="面试安排">
+          <svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2Zm11 8H6v10h12V10Z" /></svg><span>面试安排</span>
+        </button>
+        <button class="nav-item" data-view="reports" type="button" title="数据报表">
+          <svg viewBox="0 0 24 24"><path d="M5 19h14v2H5v-2Zm1-8h3v6H6v-6Zm5-8h3v14h-3V3Zm5 5h3v9h-3V8Z" /></svg><span>数据报表</span>
+        </button>
+        <div class="nav-spacer"></div>
+        <button class="nav-item" data-view="settings" type="button" title="系统设置">
+          <svg viewBox="0 0 24 24"><path d="M19.4 13.5a7.8 7.8 0 0 0 0-3l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2.6-1.5L14 2h-4l-.4 3a8 8 0 0 0-2.6 1.5l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 0 3l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2.6 1.5l.4 3h4l.4-3a8 8 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5ZM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" /></svg><span>系统设置</span>
+        </button>
+      </nav>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="viewEyebrow" class="eyebrow">无人值守招聘流程</p>
+            <h1 id="viewTitle">招聘总览</h1>
+          </div>
+          <label class="search-box">
+            <svg viewBox="0 0 24 24"><path d="m21 19.6-5.4-5.4A7.5 7.5 0 1 0 14.2 15.6l5.4 5.4 1.4-1.4ZM4 9.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0Z" /></svg>
+            <input id="globalSearch" type="search" placeholder="搜索职位 / 候选人 / 面试安排" />
+          </label>
+          <div class="top-actions">
+            <span id="statusPill" class="status-pill">待运行</span>
+            <button id="refreshBtn" class="icon-button" type="button" title="刷新数据">
+              <svg viewBox="0 0 24 24"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h8V3l-3.3 3.3Z" /></svg>
+            </button>
+          </div>
+        </header>
+
+        <section id="view-dashboard" class="view active"></section>
+        <section id="view-jobs" class="view"></section>
+        <section id="view-candidates" class="view"></section>
+        <section id="view-screening" class="view"></section>
+        <section id="view-interviews" class="view"></section>
+        <section id="view-reports" class="view"></section>
+        <section id="view-settings" class="view"></section>
+      </section>
+    </main>
+
+    <input id="resumeFiles" class="visually-hidden" type="file" multiple accept=".txt,.md,.pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,.bmp,.tiff" />
+    <script src="/static/app.js"></script>
+  </body>
+</html>

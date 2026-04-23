@@ -1,0 +1,9 @@
+姓名：陈 Alice
+邮箱：alice.chen@example.com
+电话：+86 138-0000-1001
+学历：硕士
+公司：FutureHR AI
+
+5 年 Python / FastAPI / LangChain / LangGraph AI 应用开发经验。
+主导过招聘 Agent 工作流，实现简历解析、RAG 检索、OCR 识别、Google Calendar API 排期和邮件触达。
+熟悉 SQL、PostgreSQL、Redis、Docker，能独立设计多智能体状态机和工具调用链路。
