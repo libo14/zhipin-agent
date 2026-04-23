@@ -74,7 +74,7 @@ flowchart LR
 ### 1. 克隆项目
 
 ```powershell
-git clone https://github.com/your-name/zhipin-agent.git
+git clone https://github.com/libo14/zhipin-agent.git
 cd zhipin-agent
 ```
 
