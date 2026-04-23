@@ -1,84 +1,97 @@
 # ZhipinAgent
 
-ZhipinAgent 是一个基于 LangChain 与 LangGraph 思路构建的多智能体招聘自动化系统。它把职位 JD 解析、简历读取、候选人评分、面试排期、HR 审批、邮件触达和桌面端工作台整合到一个可本地运行的应用中，适合用于 AI Agent 工作流学习、招聘自动化原型验证和桌面 AI 应用实践。
+ZhipinAgent 是一个可以在 Windows 10/11 本地运行的多智能体招聘与简历挖掘系统。它把职位 JD 管理、简历解析、候选人匹配评分、面试排期、HR 审批、邮箱收件和通知触达整合到一个桌面工作台里，适合学习 AI Agent 工作流、验证招聘自动化原型，或作为本地优先的 HR 工具继续二次开发。
 
-项目默认提供 Mock LLM 与本地规则解析能力，不接入任何第三方 API 也可以跑通演示流程；接入 OpenAI 兼容模型、硅基流动、SMTP、飞书、IMAP 邮箱后，可以进一步扩展为真实招聘工作流。
+项目默认可以离线演示：不配置 LLM API Key、不配置邮箱，也能用内置样例 JD 和样例简历跑通完整流程。配置 OpenAI 兼容模型、硅基流动、IMAP 邮箱、SMTP 或飞书后，可以扩展为更接近真实招聘场景的工作流。
 
-## 功能特性
+> 当前项目仍是开源原型，不建议直接用于处理真实候选人数据。使用前请先确认隐私、合规和数据安全要求。
 
-- **5-Agent 招聘工作流**：意图搜索、简历筛选、智能排期、技术面评、进度沟通协同完成端到端招聘流程。
-- **LangGraph 混合编排**：支持串行主流程与并行节点，安装 LangGraph 后优先使用 `StateGraph`，未安装时自动回退到本地 runner。
-- **多格式简历解析**：支持 TXT、Markdown、PDF、Word 和图片 OCR 的简历读取。
-- **加权人岗匹配**：按技能 60%、经验 30%、学历 10% 计算候选人综合评分。
-- **可编辑 JD 筛选**：职位管理页可维护 JD，AI 筛选页可临时调整本次筛选 JD 并即时参与评分。
-- **邮箱收件 Agent**：支持 Outlook、QQ 邮箱、163、Gmail 等 IMAP 邮箱，自动提取简历附件并导入候选人库。
-- **桌面端工作台**：使用 PyWebView 封装本地 Web UI，可在 Windows 10/11 上作为桌面软件运行。
-- **通知通道扩展**：默认输出 JSON 审计草稿，可接入 SMTP、SendGrid、飞书机器人。
-- **HR 审批门禁**：候选人可见触达默认需要审批，避免未经确认的邮件直接发出。
-- **Windows 打包脚本**：内置 EXE 与安装包构建脚本，方便生成本地桌面安装包。
+## 你可以用它做什么
 
-## 项目预览
+- 管理招聘职位和 JD。
+- 上传或导入候选人简历。
+- 从 Outlook、QQ 邮箱、163、Gmail 等 IMAP 邮箱自动收取简历附件。
+- 解析 TXT、PDF、Word、图片等格式的简历。
+- 使用“技能 60% + 经验 30% + 学历 10%”的权重给候选人评分。
+- 根据岗位要求生成候选人推荐理由、缺失技能和面试重点。
+- 推荐可用面试时间，并生成面试安排记录。
+- 生成候选人邮件、HR 汇总、技术面试简报等通知草稿。
+- 在 Windows 桌面窗口中使用完整招聘工作台。
 
-桌面工作台包含以下核心页面：
+## 功能预览
 
-- 仪表盘：招聘指标、候选人匹配列表、AI 招聘助手、流程漏斗、今日待办。
-- 职位管理：职位列表、JD 编辑器、岗位状态与 HC 管理。
-- 候选人库：本地上传简历、邮箱收取简历、候选人结构化信息展示。
-- AI 筛选：运行完整 Agent 工作流，查看意图解析、候选人评分、推荐理由。
-- 面试安排：候选人可用时段推荐与面试确认记录。
-- 数据报表：招聘漏斗与渠道表现。
-- 系统设置：LLM、邮箱、通知通道和本地运行目录说明。
+桌面工作台包含这些页面：
 
-## 技术栈
+- **仪表盘**：查看职位、候选人、今日面试、匹配成功率等核心指标。
+- **职位管理**：创建职位、编辑 JD、维护招聘人数和职位状态。
+- **候选人库**：上传简历、查看解析结果、管理候选人资料。
+- **AI 筛选**：运行 5-Agent 招聘工作流，查看匹配评分和推荐理由。
+- **面试安排**：查看推荐面试时间，生成面试确认记录。
+- **数据报表**：查看招聘漏斗和候选人转化数据。
+- **系统设置**：配置 LLM、邮箱收件、通知通道和本地数据目录。
 
-| 模块 | 技术 |
-| --- | --- |
-| Agent 编排 | LangGraph、LangChain、本地 fallback runner |
-| 数据建模 | Pydantic |
-| LLM 接入 | Mock LLM、OpenAI 兼容接口、硅基流动 |
-| 简历解析 | pypdf、python-docx、Pillow、pytesseract、规则抽取 |
-| 邮箱收件 | IMAP、email 标准库、附件解析 |
-| 通知触达 | JSON outbox、SMTP、SendGrid、飞书 Webhook |
-| 面试排期 | Google Calendar API 风格 Tool、本地冲突检测 |
-| Web 后端 | Python 标准库 HTTP Server |
-| 前端 | HTML、CSS、Vanilla JavaScript |
-| 桌面端 | PyWebView、PyInstaller |
-| 测试 | unittest |
-
-## 工作流架构
+## 工作流
 
 ```mermaid
 flowchart LR
-    START([START]) --> Intent["意图搜索 Agent"]
+    Start([Start]) --> Intent["意图搜索 Agent"]
     Intent --> Screening["简历筛选 Agent"]
     Screening --> Schedule["智能排期 Agent"]
     Screening --> Interview["技术面评 Agent"]
     Schedule --> Approval["HR 审批 Agent"]
     Interview --> Approval
     Approval --> Communication["沟通触达 Agent"]
-    Communication --> END([END])
+    Communication --> End([End])
 ```
 
-核心流程：
+流程说明：
 
-1. 意图搜索 Agent 从 JD 中提取岗位、技能、经验、学历、地点、关键词。
-2. 简历筛选 Agent 读取本地、上传或邮箱导入的简历，并结构化候选人画像。
-3. 匹配评分模块按技能、经验、学历进行加权打分。
-4. 智能排期 Agent 生成可用面试时间并做冲突检测。
-5. 技术面评 Agent 根据候选人与岗位差距生成面试重点。
-6. HR 审批 Agent 控制候选人可见触达是否放行。
-7. 沟通触达 Agent 输出收件、入围、拒信、面试邀请、技术简报、HR 汇总等通知。
+1. **意图搜索 Agent** 从 JD 中提取岗位名称、技能、经验、学历、地点和关键词。
+2. **简历筛选 Agent** 读取本地上传、样例目录或邮箱导入的简历，并结构化候选人信息。
+3. **匹配评分模块** 按技能、经验、学历计算综合得分。
+4. **智能排期 Agent** 推荐可用面试时间，并做基础冲突检测。
+5. **技术面评 Agent** 生成面试关注点、风险提示和问题建议。
+6. **HR 审批 Agent** 控制候选人可见邮件是否允许发送。
+7. **沟通触达 Agent** 生成收件确认、入围、拒信、面试邀请、技术简报和 HR 汇总。
 
-## 快速开始
+## 技术栈
 
-### 1. 克隆项目
+| 模块 | 技术 |
+| --- | --- |
+| Agent 编排 | LangGraph、LangChain、本地 fallback runner |
+| 数据结构 | Pydantic |
+| LLM 接入 | Mock LLM、OpenAI 兼容接口、硅基流动 |
+| 简历解析 | pypdf、python-docx、Pillow、pytesseract、规则抽取 |
+| 邮箱收件 | IMAP、Python email 标准库 |
+| 通知触达 | JSON outbox、SMTP、SendGrid、飞书 Webhook |
+| 后端服务 | Python 标准库 HTTP Server |
+| 前端界面 | HTML、CSS、Vanilla JavaScript |
+| 桌面应用 | PyWebView |
+| Windows 打包 | PyInstaller |
+| 测试 | unittest |
+
+## 安装方式
+
+目前推荐通过源码运行。后续如果发布了 Windows 安装包，可以在 GitHub Releases 中下载 `ZhipinAgentSetup.exe`。
+
+### 方式一：源码运行
+
+适合开发者、学习者，或者想自己修改项目的人。
+
+要求：
+
+- Windows 10/11
+- Python 3.11+
+- Git
+
+克隆项目：
 
 ```powershell
 git clone https://github.com/libo14/zhipin-agent.git
 cd zhipin-agent
 ```
 
-### 2. 创建虚拟环境
+创建虚拟环境：
 
 ```powershell
 python -m venv .venv
@@ -86,78 +99,56 @@ python -m venv .venv
 python -m pip install --upgrade pip
 ```
 
-### 3. 安装依赖
+安装依赖：
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 4. 运行命令行演示
-
-```powershell
-python run_demo.py
-```
-
-该命令会使用内置样例 JD 与样例简历跑通完整招聘工作流，并在 `data/outbox` 生成本地 JSON 通知草稿。
-
-### 5. 启动 Web 工作台
-
-```powershell
-python web_app.py
-```
-
-启动后打开终端输出中的本地地址，通常是：
-
-```text
-http://127.0.0.1:8765
-```
-
-### 6. 启动桌面版
+启动桌面版：
 
 ```powershell
 python desktop_app.py
 ```
 
-桌面版会自动启动本地 API 服务，并通过 PyWebView 打开应用窗口。
-
-## Windows 打包
-
-项目内置 Windows 打包脚本。打包前请确认已经安装依赖：
+启动 Web 版：
 
 ```powershell
-pip install -r requirements.txt
-pip install pyinstaller
+python web_app.py
 ```
 
-生成桌面程序目录：
-
-```powershell
-.\packaging\windows\build_exe.ps1
-```
-
-生成安装包：
-
-```powershell
-.\packaging\windows\build_installer.ps1
-```
-
-安装包默认输出到：
+然后打开终端中显示的本地地址，通常是：
 
 ```text
-dist/installer/ZhipinAgentSetup.exe
+http://127.0.0.1:8765
 ```
 
-> 注意：`build/`、`dist/`、`*.spec` 都是构建产物，已经被 `.gitignore` 忽略，不建议提交到 GitHub。
+### 方式二：运行命令行演示
 
-## 环境变量
-
-复制示例配置：
+如果你只是想快速看看 Agent 工作流输出，可以运行：
 
 ```powershell
-Copy-Item .env.example .env
+python run_demo.py
 ```
 
-### LLM 配置
+该命令会使用内置样例 JD 和样例简历，跑通完整招聘流程，并在 `data/outbox/` 中生成通知草稿。
+
+## 首次使用
+
+1. 打开桌面工作台。
+2. 进入“职位管理”，查看或修改样例 JD。
+3. 进入“候选人库”，使用内置样例简历，或上传自己的测试简历。
+4. 进入“AI 筛选”，确认本次筛选 JD、阈值和候选人范围。
+5. 点击运行筛选，查看候选人评分、推荐理由和面试建议。
+6. 如需邮箱导入，进入“系统设置”配置 IMAP 邮箱。
+
+默认情况下，项目不会真实发送候选人邮件，只会生成本地 JSON 草稿，方便调试和审计。
+
+## 可选配置
+
+项目可以不配置任何 API 直接运行。下面配置只在你需要接入真实服务时使用。
+
+### LLM
 
 默认使用 Mock LLM：
 
@@ -182,9 +173,9 @@ $env:OPENAI_API_KEY="your-api-key"
 $env:LLM_MODEL="gpt-4o-mini"
 ```
 
-### 邮箱收件配置
+### 邮箱收件
 
-支持通过 IMAP 收取邮件附件中的简历。多数邮箱需要先在邮箱设置中开启 IMAP，并使用授权码而不是登录密码。
+邮箱收件 Agent 使用 IMAP。大多数邮箱需要先开启 IMAP，并使用授权码，而不是网页登录密码。
 
 ```powershell
 $env:IMAP_PROVIDER="outlook"
@@ -199,16 +190,16 @@ $env:IMAP_SSL="true"
 $env:IMAP_MARK_SEEN="false"
 ```
 
-常用 provider：
+常用邮箱：
 
-- `outlook`：`imap-mail.outlook.com:993`
-- `qq`：`imap.qq.com:993`
-- `163`：`imap.163.com:993`
-- `gmail`：`imap.gmail.com:993`
+- Outlook：`imap-mail.outlook.com:993`
+- QQ 邮箱：`imap.qq.com:993`
+- 163 邮箱：`imap.163.com:993`
+- Gmail：`imap.gmail.com:993`
 
-### 通知通道配置
+### 通知通道
 
-默认只写 JSON 草稿：
+默认只生成 JSON 草稿：
 
 ```powershell
 $env:NOTIFICATION_CHANNELS="json"
@@ -239,25 +230,50 @@ SendGrid：
 $env:NOTIFICATION_CHANNELS="json,sendgrid"
 $env:SENDGRID_API_KEY="your-sendgrid-key"
 $env:SENDGRID_FROM_EMAIL="hr@example.com"
-$env:SENDGRID_BASE_URL="https://api.sendgrid.com"
 ```
 
 ## 数据目录
 
-| 路径 | 说明 | 是否建议提交 |
+| 路径 | 用途 | 是否建议提交到 Git |
 | --- | --- | --- |
-| `data/sample_job.txt` | 示例 JD | 是 |
-| `data/resumes/*.txt` | 示例简历 | 是 |
+| `data/sample_job.txt` | 样例 JD | 是 |
+| `data/resumes/*.txt` | 样例简历 | 是 |
 | `data/jobs/` | 用户创建或修改的职位 | 否 |
 | `data/web_uploads/` | 前端上传的真实简历 | 否 |
 | `data/email_resumes/` | 邮箱导入的真实简历 | 否 |
-| `data/outbox/` | 通知草稿与投递记录 | 否 |
+| `data/outbox/` | 通知草稿和发送记录 | 否 |
 | `data/interviews/` | 面试确认记录 | 否 |
 | `data/checkpoints*.sqlite` | LangGraph checkpoint 数据库 | 否 |
 
-开源前请务必确认真实简历、邮箱授权码、候选人联系方式、面试记录、发件草稿没有进入 Git 历史。
+`.gitignore` 已经默认忽略运行数据、真实简历、构建产物和密钥文件。请不要把真实候选人简历、邮箱授权码、API Key 或面试记录提交到公开仓库。
 
-## 运行测试
+## Windows 打包
+
+如果你想自己构建 Windows 桌面程序：
+
+```powershell
+pip install -r requirements.txt
+pip install pyinstaller
+.\packaging\windows\build_exe.ps1
+```
+
+生成安装包：
+
+```powershell
+.\packaging\windows\build_installer.ps1
+```
+
+构建产物默认在：
+
+```text
+dist/
+```
+
+构建产物不建议提交到源码仓库。如果要给普通用户下载安装，建议上传到 GitHub Releases。
+
+## 测试
+
+运行单元测试：
 
 ```powershell
 python -m unittest discover tests
@@ -269,59 +285,56 @@ python -m unittest discover tests
 python desktop_app.py --smoke
 ```
 
-构建后 EXE 烟测：
-
-```powershell
-.\dist\ZhipinAgent\ZhipinAgent.exe --smoke
-```
-
-## 目录结构
+## 项目结构
 
 ```text
 .
-├── data/                         # 示例数据与本地运行数据
+├── assets/                       # 应用图标
+├── data/                         # 样例数据和本地运行数据
 ├── packaging/windows/            # Windows 打包与安装脚本
-├── src/recruitment_agents/       # Agent、workflow、parser、scoring、tool
-│   ├── agents.py                 # 各招聘 Agent 节点
-│   ├── workflow.py               # LangGraph 编排与 fallback runner
-│   ├── parsers.py                # 简历解析
-│   ├── scoring.py                # 加权评分
-│   └── tools/                    # 邮箱、排期、通知工具
-├── static/                       # 桌面工作台前端
+├── src/recruitment_agents/       # Agent、workflow、parser、scoring、tools
+├── static/                       # 前端页面
 ├── tests/                        # 单元测试
-├── desktop_app.py                # PyWebView 桌面入口
+├── desktop_app.py                # 桌面应用入口
 ├── web_app.py                    # 本地 HTTP API
-├── run_demo.py                   # CLI 演示入口
+├── run_demo.py                   # 命令行演示入口
 ├── requirements.txt
 └── pyproject.toml
 ```
 
-## 开源发布清单
+## 常见问题
 
-发布到 GitHub 前建议执行：
+### 不配置 API Key 可以运行吗？
 
-```powershell
-python -m unittest discover tests
-python desktop_app.py --smoke
-```
+可以。项目默认支持 Mock LLM 和本地规则逻辑，可以直接运行样例流程。
 
-检查以下内容：
+### 可以处理 PDF 简历吗？
 
-- `.env`、API Key、邮箱授权码未提交。
-- `data/web_uploads/`、`data/email_resumes/`、`data/outbox/`、`data/interviews/` 未提交。
-- `build/`、`dist/`、`*.spec` 未提交。
-- README 中的 GitHub 地址、截图、许可证信息已经替换为你的真实项目内容。
-- 如需开源分发，补充 `LICENSE` 文件。
+可以。项目支持 PDF 文本提取。扫描版 PDF 或图片简历依赖 OCR 能力，效果取决于本机环境和图片质量。
 
-## 路线图
+### 会自动发送邮件给候选人吗？
 
-- 加密保存邮箱账号配置，避免每次启动重新填写授权码。
-- 接入真实 Google Calendar，完成候选人与面试官日程双向同步。
-- 增加更强的 OCR 与简历结构化模型，提升扫描版 PDF 解析质量。
-- 增加可配置评分权重与岗位画像模板。
-- 增加多租户职位库、候选人去重、招聘渠道追踪。
-- 增加 Docker 部署方式和 CI 测试流水线。
+默认不会。默认通知通道是 `json`，只会生成本地草稿。只有你主动配置 SMTP、SendGrid 或飞书等通道后，才会尝试真实投递。
+
+### 可以直接下载 exe 安装吗？
+
+如果仓库 Releases 页面发布了 `ZhipinAgentSetup.exe`，可以直接下载安装。否则请按“源码运行”方式启动。
+
+### 这个项目适合生产使用吗？
+
+目前更适合作为学习、演示和原型项目。生产使用前需要补充权限控制、数据加密、日志审计、候选人隐私合规、稳定的 OCR/LLM 服务和更完整的错误处理。
 
 ## 许可证
 
-当前仓库尚未内置许可证文件。正式开源前建议选择并添加 `LICENSE`，例如 MIT、Apache-2.0 或 GPL-3.0。
+当前仓库尚未内置许可证文件。正式开源前建议添加 `LICENSE`，例如 MIT、Apache-2.0 或 GPL-3.0。
+
+## 贡献
+
+欢迎提交 issue、建议和 pull request。比较适合继续完善的方向：
+
+- 加密保存邮箱授权配置。
+- 接入真实 Google Calendar。
+- 增强 OCR 和扫描版 PDF 解析。
+- 支持自定义评分权重。
+- 增加候选人去重和人才库搜索。
+- 增加 GitHub Actions 自动测试。
