@@ -8,15 +8,15 @@ import threading
 import time
 import urllib.request
 import webbrowser
-from http.server import ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from web_app import RecruitmentWebHandler
+from fastapi_app import create_app
 
 
 def find_available_port(preferred: int = 8765) -> int:
@@ -28,19 +28,41 @@ def find_available_port(preferred: int = 8765) -> int:
     raise RuntimeError("No available local port found.")
 
 
-def start_local_server() -> tuple[ThreadingHTTPServer, threading.Thread, str]:
+def start_local_server() -> tuple[Any, threading.Thread, str]:
+    import uvicorn
+
     port = find_available_port()
-    server = ThreadingHTTPServer(("127.0.0.1", port), RecruitmentWebHandler)
     url = f"http://127.0.0.1:{port}"
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    config = uvicorn.Config(
+        create_app(),
+        host="127.0.0.1",
+        port=port,
+        log_level="warning",
+        access_log=False,
+    )
+    server = uvicorn.Server(config)
+    thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
-    time.sleep(0.5)
+    wait_for_server(url)
     return server, thread, url
 
 
-def shutdown_server(server: ThreadingHTTPServer) -> None:
-    server.shutdown()
-    server.server_close()
+def wait_for_server(url: str, timeout: float = 8.0) -> None:
+    deadline = time.time() + timeout
+    last_error: Exception | None = None
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(f"{url}/api/sample", timeout=1) as response:
+                if response.status == 200:
+                    return
+        except Exception as exc:
+            last_error = exc
+            time.sleep(0.1)
+    raise RuntimeError(f"Local FastAPI server did not start: {last_error}")
+
+
+def shutdown_server(server: Any) -> None:
+    server.should_exit = True
 
 
 def run_smoke_check() -> int:

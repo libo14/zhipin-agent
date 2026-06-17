@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import os
 import sys
+import tempfile
 import types
 import unittest
 
@@ -10,15 +11,29 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from recruitment_agents.workflow import build_workflow
-from recruitment_agents.agents import approval_decision_from_resume, checkpointed_approval_agent
+from recruitment_agents.agents import (
+    CommunicationAgent,
+    IntentSearchAgent,
+    ResumeScreeningAgent,
+    SchedulingAgent,
+    TechnicalEvaluationAgent,
+    approval_agent,
+    approval_decision_from_resume,
+    checkpointed_approval_agent,
+    intent_search_agent,
+    resume_screening_agent,
+)
+from recruitment_agents.llm import MockChatModel
 from recruitment_agents.models import ApprovalDecision, EmailNotification
+from recruitment_agents.parsers import ResumeParser
+from recruitment_agents.tools.calendar import CalendarScheduler
 from recruitment_agents.tools.email import parse_channels, parse_feishu_error
 from recruitment_agents.tools.email import NotificationCenter
 
 
 class WorkflowTest(unittest.TestCase):
     def test_recruitment_workflow_runs(self) -> None:
-        workflow = build_workflow()
+        workflow = build_workflow(interrupt_on_approval=False)
         result = workflow.invoke(
             {
                 "job_description": (ROOT / "data" / "sample_job.txt").read_text(encoding="utf-8"),
@@ -38,6 +53,73 @@ class WorkflowTest(unittest.TestCase):
         self.assertTrue(result["delivery_results"])
         self.assertEqual(result["delivery_results"][0].channel, "json")
         self.assertTrue(result["events"])
+
+    def test_five_agent_classes_run_independently(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            state = {
+                "job_description": (ROOT / "data" / "sample_job.txt").read_text(encoding="utf-8"),
+                "resume_paths": [str(ROOT / "data" / "resumes")],
+                "threshold": 70,
+                "timezone": "Asia/Shanghai",
+                "outbox_dir": temp,
+            }
+            agents = [
+                IntentSearchAgent(MockChatModel()),
+                ResumeScreeningAgent(ResumeParser()),
+                SchedulingAgent(CalendarScheduler()),
+                TechnicalEvaluationAgent(MockChatModel()),
+                CommunicationAgent(NotificationCenter()),
+            ]
+
+            for agent in agents:
+                self.assertTrue(agent.name)
+                self.assertTrue(agent.role)
+                self.assertTrue(agent.description)
+                update = agent.run(state)
+                state.update(update)
+                self.assertTrue(update["events"])
+                self.assertEqual(update["events"][0].node, agent.name)
+                self.assertIn("Reason:", update["events"][0].message)
+                self.assertIn("Action:", update["events"][0].message)
+                self.assertIn("Tool:", update["events"][0].message)
+                self.assertIn("Observation:", update["events"][0].message)
+
+            self.assertEqual(len(agents), 5)
+            self.assertTrue(state["intent"].required_skills)
+            self.assertTrue(state["candidate_matches"])
+            self.assertTrue(state["schedule_recommendations"])
+            self.assertTrue(state["technical_evaluations"])
+            self.assertTrue(state["notifications"])
+            self.assertTrue(state["delivery_results"])
+
+    def test_function_wrappers_match_agent_class_outputs(self) -> None:
+        llm = MockChatModel()
+        parser = ResumeParser()
+        state = {
+            "job_description": (ROOT / "data" / "sample_job.txt").read_text(encoding="utf-8"),
+            "resume_paths": [str(ROOT / "data" / "resumes")],
+            "threshold": 70,
+        }
+
+        class_update = IntentSearchAgent(llm).run(state)
+        wrapper_update = intent_search_agent(state, llm)
+        self.assertEqual(class_update["intent"], wrapper_update["intent"])
+        self.assertEqual(class_update["events"][0].node, wrapper_update["events"][0].node)
+
+        screening_state = dict(state, intent=class_update["intent"])
+        class_screening = ResumeScreeningAgent(parser).run(screening_state)
+        wrapper_screening = resume_screening_agent(screening_state, parser)
+        self.assertEqual(
+            [item.candidate.name for item in class_screening["candidate_matches"]],
+            [item.candidate.name for item in wrapper_screening["candidate_matches"]],
+        )
+        self.assertEqual(class_screening["events"][0].node, wrapper_screening["events"][0].node)
+
+    def test_hr_approval_gate_stays_outside_five_core_agents(self) -> None:
+        update = approval_agent({"approval_status": "approved", "approved_by": "HR"})
+
+        self.assertEqual(update["approval_decision"].status, "approved")
+        self.assertEqual(update["events"][0].node, "approval_agent")
 
     def test_notification_helpers(self) -> None:
         self.assertEqual(parse_channels("json,sendgrid,unknown"), {"json", "sendgrid"})

@@ -64,7 +64,7 @@ flowchart LR
 | 简历解析 | pypdf、python-docx、Pillow、pytesseract、规则抽取 |
 | 邮箱收件 | IMAP、Python email 标准库 |
 | 通知触达 | JSON outbox、SMTP、SendGrid、飞书 Webhook |
-| 后端服务 | Python 标准库 HTTP Server |
+| 后端服务 | FastAPI、Uvicorn |
 | 前端界面 | HTML、CSS、Vanilla JavaScript |
 | 桌面应用 | PyWebView |
 | Windows 打包 | PyInstaller |
@@ -105,16 +105,10 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-启动桌面版：
-
-```powershell
-python desktop_app.py
-```
-
 启动 Web 版：
 
 ```powershell
-python web_app.py
+python fastapi_app.py
 ```
 
 然后打开终端中显示的本地地址，通常是：
@@ -123,15 +117,27 @@ python web_app.py
 http://127.0.0.1:8765
 ```
 
-### 方式二：运行命令行演示
+启动桌面版：
 
-如果你只是想快速看看 Agent 工作流输出，可以运行：
+```powershell
+python desktop_app.py
+```
+
+### 方式二：运行命令行演示
 
 ```powershell
 python run_demo.py
 ```
 
 该命令会使用内置样例 JD 和样例简历，跑通完整招聘流程，并在 `data/outbox/` 中生成通知草稿。
+
+### 方式三：旧版标准库后端兼容入口
+
+```powershell
+python web_app.py
+```
+
+如果你需要验证旧版 HTTP Server，也可以运行该入口。新版本推荐使用 `fastapi_app.py`。
 
 ## 首次使用
 
@@ -295,9 +301,10 @@ python desktop_app.py --smoke
 ├── src/recruitment_agents/       # Agent、workflow、parser、scoring、tools
 ├── static/                       # 前端页面
 ├── tests/                        # 单元测试
-├── desktop_app.py                # 桌面应用入口
-├── web_app.py                    # 本地 HTTP API
-├── run_demo.py                   # 命令行演示入口
+├── desktop_app.py                # PyWebView 桌面入口
+├── fastapi_app.py                # FastAPI 本地 HTTP API
+├── web_app.py                    # 旧版标准库 HTTP API 兼容入口
+├── run_demo.py                   # CLI 演示入口
 ├── requirements.txt
 └── pyproject.toml
 ```

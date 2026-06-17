@@ -276,7 +276,7 @@ ai-recruitment-agent/
 
 ```powershell
 cd D:\codex\ai-recruitment-agent
-..\.venv\Scripts\python.exe web_app.py
+..\.venv\Scripts\python.exe fastapi_app.py
 ```
 
 启动后访问：

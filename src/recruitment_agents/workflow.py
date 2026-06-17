@@ -5,13 +5,13 @@ from typing import Any
 
 from recruitment_agents.checkpointing import build_checkpointer
 from recruitment_agents.agents import (
+    CommunicationAgent,
+    IntentSearchAgent,
+    ResumeScreeningAgent,
+    SchedulingAgent,
+    TechnicalEvaluationAgent,
     approval_agent,
     checkpointed_approval_agent,
-    communication_agent,
-    intent_search_agent,
-    resume_screening_agent,
-    scheduling_agent,
-    technical_evaluation_agent,
 )
 from recruitment_agents.llm import LLMClient, build_llm
 from recruitment_agents.models import RecruitmentState
@@ -33,28 +33,39 @@ def build_workflow(
     parser = parser or ResumeParser()
     scheduler = scheduler or CalendarScheduler()
     notification_center = notification_center or NotificationCenter()
+    intent_agent = IntentSearchAgent(llm)
+    screening_agent = ResumeScreeningAgent(parser)
+    scheduling_agent_instance = SchedulingAgent(scheduler)
+    technical_agent = TechnicalEvaluationAgent(llm)
+    communication_agent_instance = CommunicationAgent(notification_center)
 
     try:
         from langgraph.graph import END, START, StateGraph
     except ImportError:
-        return LocalRecruitmentWorkflow(llm, parser, scheduler, notification_center)
+        return LocalRecruitmentWorkflow(
+            intent_agent=intent_agent,
+            screening_agent=screening_agent,
+            scheduling_agent=scheduling_agent_instance,
+            technical_agent=technical_agent,
+            communication_agent=communication_agent_instance,
+        )
 
     graph = StateGraph(RecruitmentState)
-    graph.add_node("intent_search_agent", lambda state: intent_search_agent(state, llm))
-    graph.add_node("resume_screening_agent", lambda state: resume_screening_agent(state, parser))
-    graph.add_node("scheduling_agent", lambda state: scheduling_agent(state, scheduler))
-    graph.add_node("technical_evaluation_agent", lambda state: technical_evaluation_agent(state, llm))
+    graph.add_node(intent_agent.name, intent_agent.run)
+    graph.add_node(screening_agent.name, screening_agent.run)
+    graph.add_node(scheduling_agent_instance.name, scheduling_agent_instance.run)
+    graph.add_node(technical_agent.name, technical_agent.run)
     approval_node = checkpointed_approval_agent if interrupt_on_approval else approval_agent
     graph.add_node("approval_agent", approval_node)
-    graph.add_node("communication_agent", lambda state: communication_agent(state, notification_center))
+    graph.add_node(communication_agent_instance.name, communication_agent_instance.run)
 
-    graph.add_edge(START, "intent_search_agent")
-    graph.add_edge("intent_search_agent", "resume_screening_agent")
-    graph.add_edge("resume_screening_agent", "scheduling_agent")
-    graph.add_edge("resume_screening_agent", "technical_evaluation_agent")
-    graph.add_edge(["scheduling_agent", "technical_evaluation_agent"], "approval_agent")
-    graph.add_edge("approval_agent", "communication_agent")
-    graph.add_edge("communication_agent", END)
+    graph.add_edge(START, intent_agent.name)
+    graph.add_edge(intent_agent.name, screening_agent.name)
+    graph.add_edge(screening_agent.name, scheduling_agent_instance.name)
+    graph.add_edge(screening_agent.name, technical_agent.name)
+    graph.add_edge([scheduling_agent_instance.name, technical_agent.name], "approval_agent")
+    graph.add_edge("approval_agent", communication_agent_instance.name)
+    graph.add_edge(communication_agent_instance.name, END)
     if interrupt_on_approval:
         checkpointer = checkpointer or build_checkpointer(checkpoint_path)
         return graph.compile(checkpointer=checkpointer)
@@ -66,31 +77,33 @@ class LocalRecruitmentWorkflow:
 
     def __init__(
         self,
-        llm: LLMClient,
-        parser: ResumeParser,
-        scheduler: CalendarScheduler,
-        notification_center: NotificationCenter,
+        intent_agent: IntentSearchAgent,
+        screening_agent: ResumeScreeningAgent,
+        scheduling_agent: SchedulingAgent,
+        technical_agent: TechnicalEvaluationAgent,
+        communication_agent: CommunicationAgent,
     ) -> None:
-        self.llm = llm
-        self.parser = parser
-        self.scheduler = scheduler
-        self.notification_center = notification_center
+        self.intent_agent = intent_agent
+        self.screening_agent = screening_agent
+        self.scheduling_agent = scheduling_agent
+        self.technical_agent = technical_agent
+        self.communication_agent = communication_agent
 
     def invoke(self, initial_state: RecruitmentState, *args: Any, **kwargs: Any) -> RecruitmentState:
         state: RecruitmentState = dict(initial_state)
-        self._merge(state, intent_search_agent(state, self.llm))
-        self._merge(state, resume_screening_agent(state, self.parser))
+        self._merge(state, self.intent_agent.run(state))
+        self._merge(state, self.screening_agent.run(state))
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             futures = [
-                executor.submit(scheduling_agent, dict(state), self.scheduler),
-                executor.submit(technical_evaluation_agent, dict(state), self.llm),
+                executor.submit(self.scheduling_agent.run, dict(state)),
+                executor.submit(self.technical_agent.run, dict(state)),
             ]
             for future in futures:
                 self._merge(state, future.result())
 
         self._merge(state, approval_agent(state))
-        self._merge(state, communication_agent(state, self.notification_center))
+        self._merge(state, self.communication_agent.run(state))
         return state
 
     def _merge(self, state: RecruitmentState, update: dict[str, Any]) -> None:
@@ -106,18 +119,6 @@ class LocalRecruitmentWorkflow:
                 state[key] = state.get(key, []) + value
             else:
                 state[key] = value
-
-
-def draw_mermaid() -> str:
-    return """flowchart LR
-    START([START]) --> intent[意图搜索 Agent]
-    intent --> screen[简历筛选 Agent]
-    screen --> schedule[智能排期 Agent]
-    screen --> tech[技术面评 Agent]
-    schedule --> comm[沟通 Agent]
-    tech --> comm
-    comm --> END([END])
-"""
 
 
 def draw_mermaid() -> str:

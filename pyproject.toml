@@ -8,6 +8,9 @@ dependencies = [
   "langgraph-checkpoint-sqlite>=3.0.0",
   "langchain>=1.0.0",
   "langchain-openai>=1.0.0",
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "python-multipart>=0.0.9",
   "pydantic>=2.7.0",
   "python-dotenv>=1.0.1",
   "pypdf>=4.2.0",
@@ -22,7 +25,7 @@ dependencies = [
 
 [project.scripts]
 recruitment-demo = "recruitment_agents.cli:main"
-recruitment-web = "web_app:main"
+recruitment-web = "fastapi_app:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
